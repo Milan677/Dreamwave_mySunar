@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ear Care AI Agent</title>
+</head>
+<body>
+  <h2>Ask a Question</h2>
+  <input type="text" id="question" />
+  <button onclick="ask()">Send</button>
+  <p id="reply"></p>
+
+  <h2>Upload Image</h2>
+  <input type="file" id="imageInput" />
+  <button onclick="uploadImage()">Upload</button>
+  <p id="imageReply"></p>
+
+  <script>
+    async function ask() {
+      const text = document.getElementById('question').value;
+      const response = await fetch("http://localhost:8000/ask/", {
+        method: "POST",
+         headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+           query: text
+        })
+      });
+      const data = await response.json();
+      document.getElementById('reply').innerText = data.answer;
+    }
+
+    async function uploadImage() {
+      const fileInput = document.getElementById('imageInput');
+      const formData = new FormData();
+      formData.append("file", fileInput.files[0]);
+      const response = await fetch("http://localhost:8000/analyze/", {
+        method: "POST",
+        body: formData
+      });
+      const data = await response.json();
+      console.log(data);
+      document.getElementById('imageReply').innerText = data.result;
+    }
+  </script>
+</body>
+</html>

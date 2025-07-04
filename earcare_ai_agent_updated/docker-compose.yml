@@ -1,0 +1,8 @@
+version: "3.9"
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      TOGETHER_API_KEY: your_together_api_key
