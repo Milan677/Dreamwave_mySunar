@@ -1,22 +1,21 @@
 import React, { useState } from "react";
 import { GoUpload } from "react-icons/go";
- 
+
 const ImageUploader = ({ onUpload }) => {
   const [fileName, setFileName] = useState("");
   const [file, setFile] = useState(null);
   const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [Feedback, setFeedback] = useState([]);
- 
+  const [feedbackText, setFeedbackText] = useState("");
+
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       setFile(selectedFile);
       setFileName(selectedFile.name);
-      // onUpload(selectedFile);
     }
   };
- 
+
   const handleDrop = (e) => {
     e.preventDefault();
     setDragging(false);
@@ -24,46 +23,68 @@ const ImageUploader = ({ onUpload }) => {
     if (droppedFile) {
       setFile(droppedFile);
       setFileName(droppedFile.name);
-      // onUpload(droppedFile);
     }
   };
- 
+
   const handleImageUpload = async (e) => {
     e.preventDefault();
-    console.log('analyze button clicked');
-    // if (!uploadedFile) {
-    //   alert("No file selected for upload");
-    //   return;
-    // }
     setLoading(true);
+
     const formData = new FormData();
     formData.append("file", file);
- 
+
     try {
       const res = await fetch("http://localhost:8000/analyze/", {
         method: "POST",
         body: formData,
       });
- 
+
       if (!res.ok) {
         throw new Error("Error uploading file");
       }
- 
+
       const data = await res.json();
-      setFeedback(data.result);
+      setFeedbackText(data.result);
       setLoading(false);
-      console.log("first", data);
     } catch (error) {
       console.error("Error uploading file:", error);
+      setLoading(false);
     }
   };
- 
+
+  const renderFeedback = (text) => {
+    const sections = text.split("\n\n");
+
+    return sections.map((section, idx) => {
+      if (section.trim().startsWith("*")) {
+        const bulletItems = section
+          .split("\n")
+          .filter((line) => line.trim().startsWith("*"))
+          .map((item, i) => (
+            <li key={i}>{item.replace(/^\* /, "").trim()}</li>
+          ));
+
+        return (
+          <ul key={idx} className="list-disc pl-5 mb-4 text-sm text-gray-800">
+            {bulletItems}
+          </ul>
+        );
+      } else {
+        return (
+          <p key={idx} className="mb-3 text-sm text-gray-800">
+            {section.trim()}
+          </p>
+        );
+      }
+    });
+  };
+
   return (
-    <div className="space-y-2 w-full">
+    <div className="space-y-4 w-full">
       <label className="block text-sm font-medium text-gray-700">
         Upload File
       </label>
- 
+
       <div
         className={`w-full border border-gray-300 bg-gray-100 rounded-lg p-6 flex flex-col items-center justify-center text-center transition-all ${
           dragging ? "bg-gray-200" : ""
@@ -89,17 +110,18 @@ const ImageUploader = ({ onUpload }) => {
             onChange={handleFileChange}
           />
         </label>
- 
+
         {fileName && (
           <p className="text-sm text-black mt-3 font-bold">
             Uploaded: <span className="text-blue-700">{fileName}</span>
           </p>
         )}
- 
+
         <p className="text-xs text-gray-500 mt-2">
-          Supports PDF, DOCX, (PNG, JPEG, JPG) & MP4.
+          Supports PDF, DOCX, PNG, JPEG, JPG & MP4.
         </p>
       </div>
+
       <div className="flex justify-center mt-4">
         {file && (
           <button
@@ -110,19 +132,23 @@ const ImageUploader = ({ onUpload }) => {
           </button>
         )}
       </div>
+
       {loading && (
         <div className="flex justify-center mt-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
         </div>
       )}
-      {Feedback.length > 0 && (
-        <div className="mt-4 p-4 bg-green-100 text-black rounded-md">
-          <h3 className="font-semibold">Analysis Result:</h3>
-          <p>{Feedback}</p>
+
+      {feedbackText && (
+        <div className="mt-6 p-5 bg-green-100 rounded-md shadow-sm">
+          <h3 className="text-md font-semibold mb-3 text-green-900">
+            Analysis Result:
+          </h3>
+          {renderFeedback(feedbackText)}
         </div>
       )}
     </div>
   );
 };
- 
+
 export default ImageUploader;

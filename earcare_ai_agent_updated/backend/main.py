@@ -147,11 +147,27 @@ async def analyze_image(file: UploadFile = File(...)):
         image = Image.open(io.BytesIO(contents)).convert("RGB")
 
         # Medical-specific prompt
+        # prompt = """
+        # You are an expert pediatric AI assistant specializing in ear piercings.
+        # Given an image of a  pierced ear, assess the stage of healing and mention if there’s redness,
+        # swelling, discharge, or signs of infection. Give a direct but medically sound response.
+        # Please analyze this image and describe the healing stage of the pierced ear.
+        # """
+
         prompt = """
-        You are an expert pediatric AI assistant specializing in ear piercings.
-        Given an image of a  pierced ear, assess the stage of healing and mention if there’s redness,
-        swelling, discharge, or signs of infection. Give a direct but medically sound response.
-        Please analyze this image and describe the healing stage of the pierced ear.
+            You are an expert pediatric AI assistant specializing in ear piercings.
+
+            Given an image of a pierced ear, assess the following:
+            - The stage of healing (if determinable)
+            - Presence of redness, swelling, or discharge
+            - Any visible signs of irritation or infection
+
+            Provide a clear, medically sound explanation that avoids using markdown symbols (like asterisks). Format the response using:
+            - Short paragraphs for explanations
+            - Bullet points for listing symptoms or observations
+            - Avoid technical jargon where possible, so it's easy for parents or caretakers to understand
+
+            Always indicate whether the ear appears to be healing normally or if it needs professional medical attention.
         """
 
         # Send image + prompt to Gemini
